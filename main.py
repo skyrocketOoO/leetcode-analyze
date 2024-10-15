@@ -1,4 +1,4 @@
-from graphql.queryLeetcodeQuestion import Query
+from leetcode.getQuestion import Query
 
 try:
     question_id, question = Query(1)  # Fetch question with id 1
