@@ -4,24 +4,33 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from utils.cleanHtmlContent import CleanHtmlContent
 
-try:
-    questions = GetAllQuestions()
-    
-    # transform topics
-    targetLabels = []
-    for question in questions:
-        targetLabels.append(question.Topics)
-    mlb = MultiLabelBinarizer()
-    targetLabels = mlb.fit_transform(targetLabels)
-    
-    # transform features
-    features = []
-    for question in questions:
-        features.append("Title: " + question.Title + "\n" + CleanHtmlContent(question.Content))
-    vectorizer = TfidfVectorizer()
-    features = vectorizer.fit_transform(features)
-    Train(features, targetLabels, vectorizer.get_feature_names_out, mlb.classes_)
+
+print("get all questions")
+questions = GetAllQuestions()
+
+print("transform topics")
+# transform topics
+targetLabels = []
+for question in questions:
+    if question.Content is None:
+        continue
+    targetLabels.append(question.Topics)
+mlb = MultiLabelBinarizer()
+targetLabels = mlb.fit_transform(targetLabels)
+print("transform features")
+# transform features
+features = []
+for question in questions:
+    if question.Content is None:
+        continue
+    features.append("Title: " + question.Title + "\n" + question.Content)
+vectorizer = TfidfVectorizer()
+features = vectorizer.fit_transform(features)
+
+print(len(targetLabels))
+print("training")
+# print(features is None, targetLabels is None, )
+Train(features, targetLabels, vectorizer.get_feature_names_out(), mlb.classes_)
         
-except Exception as e:
-    print(e)
+
 

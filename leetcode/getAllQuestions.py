@@ -32,6 +32,7 @@ def GetAllQuestions() -> List[Question]:
         # Check if the question already exists locally
         question = load_local_question(i)
         if question is None:
+            print(f"query {i}")
             # If the question isn't stored locally, fetch it from the API
             _, question = Query(i)
             save_local_question(question)  # Save it to a separate file

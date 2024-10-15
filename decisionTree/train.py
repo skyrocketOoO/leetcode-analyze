@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 def Train(features: List, targetLabels: List, feature_names: List[str] = None, class_names: List[str] = None):
   # Step 2: Split the data into training and test sets
-  X_train, X_test, y_train, y_test = train_test_split(features, targetLabels, test_size=0.3, random_state=42)
+  X_train, X_test, y_train, y_test = train_test_split(features, targetLabels, test_size=0.05, random_state=42)
 
   # Step 3: Initialize and train the Decision Tree Classifier
   clf = DecisionTreeClassifier(random_state=42)
