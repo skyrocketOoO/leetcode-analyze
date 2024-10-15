@@ -2,6 +2,7 @@ from leetcode.getAllQuestions import GetAllQuestions
 from decisionTree.train import Train
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from utils.cleanHtmlContent import CleanHtmlContent
 
 try:
     questions = GetAllQuestions()
@@ -16,7 +17,7 @@ try:
     # transform features
     features = []
     for question in questions:
-        features.append("Title: " + question.Title + "\n" + question.Content)
+        features.append("Title: " + question.Title + "\n" + CleanHtmlContent(question.Content))
     vectorizer = TfidfVectorizer()
     features = vectorizer.fit_transform(features)
     Train(features, targetLabels, vectorizer.get_feature_names_out, mlb.classes_)
