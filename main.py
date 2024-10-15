@@ -1,10 +1,26 @@
-from leetcode.getQuestion import Query
+from leetcode.getAllQuestions import GetAllQuestions
+from decisionTree.train import Train
+from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 try:
-    question_id, question = Query(1)  # Fetch question with id 1
-    print(f"Question {question_id}: {question.Title}")
-    print(f"Content: {question.Content}")
-    print(f"Topics: {question.Topics}")
+    questions = GetAllQuestions()
+    
+    # transform topics
+    targetLabels = []
+    for question in questions:
+        targetLabels.append(question.Topics)
+    mlb = MultiLabelBinarizer()
+    targetLabels = mlb.fit_transform(targetLabels)
+    
+    # transform features
+    features = []
+    for question in questions:
+        features.append("Title: " + question.Title + "\n" + question.Content)
+    vectorizer = TfidfVectorizer()
+    features = vectorizer.fit_transform(features)
+    Train(features, targetLabels, vectorizer.get_feature_names_out, mlb.classes_)
+        
 except Exception as e:
     print(e)
 

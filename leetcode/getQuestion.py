@@ -11,6 +11,18 @@ class Question:
   Topics: List[str]
 
 def Query(id: int) -> Tuple[int, Question]:
+  """_summary_
+
+  Args:
+      id (int): _description_
+
+  Raises:
+      Exception: _description_
+      Exception: _description_
+
+  Returns:
+      Tuple[int, Question]: _description_
+  """  
   url = "https://leetcode.com/graphql/"
   query = '''
   query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {

@@ -22,7 +22,7 @@ def save_local_question(question: Question):
     with open(filepath, "w") as file:
         json.dump(question.__dict__, file)
 
-def GetAllLeetcodeQuestions() -> List[Question]:
+def GetAllQuestions() -> List[Question]:
     """Fetch all Leetcode questions and store them locally as separate files."""
     questions = []
     total, _ = Query(1)  # Get the total number of questions
@@ -41,5 +41,5 @@ def GetAllLeetcodeQuestions() -> List[Question]:
     return questions
 
 if __name__ == "__main__":
-    questions = GetAllLeetcodeQuestions()
+    questions = GetAllQuestions()
     print(f"Total questions fetched: {len(questions)}")
