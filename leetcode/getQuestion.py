@@ -7,6 +7,7 @@ from dataclasses import dataclass
 class Question:
   Id: int
   Title: str
+  Category: str
   Content: str
   Topics: List[str]
 
@@ -36,6 +37,7 @@ def Query(id: int) -> Tuple[int, Question]:
       questions: data {
         frontendQuestionId: questionFrontendId
         title
+        categoryTitle
         content
         topicTags {
           name
@@ -79,6 +81,7 @@ def parseQuestion(data: any) -> Question:
   return Question(
     Id=int(data['frontendQuestionId']),
     Title=data['title'],
+    Category=data['categoryTitle'],
     Content=data['content'],
     Topics=[tag['name'] for tag in data['topicTags']]
 )

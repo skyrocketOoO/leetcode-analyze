@@ -37,7 +37,7 @@ def GetAllQuestions() -> List[Question]:
             _, question = Query(i)
             save_local_question(question)  # Save it to a separate file
         questions.append(question)
-        time.sleep(0.2)  # Rate-limiting sleep
+        time.sleep(0.3)  # Rate-limiting sleep
     
     return questions
 
