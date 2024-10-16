@@ -1,45 +1,42 @@
 from leetcode.getQuestion import Question, Query
-from typing import List
+from typing import List, Dict
 import json
 import os
 import time
 
-DATA_DIR = "leetcode_questions"
+DATA_FILE = "questions.json"
 
-def load_local_question(question_id: int) -> Question:
-    """Load a single question from local storage if the file exists."""
-    filepath = os.path.join(DATA_DIR, f"{question_id}.json")
-    if os.path.exists(filepath):
-        with open(filepath, "r") as file:
+def load_local_questions() -> Dict[int, Question]:
+    """Load all questions from a local JSON file if it exists."""
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as file:
             data = json.load(file)
-            return Question(**data)
-    return None
+            # Deserialize into Question objects
+            return {int(k): Question(**v) for k, v in data.items()}
+    return {}
 
-def save_local_question(question: Question):
-    """Save a single question to local storage."""
-    os.makedirs(DATA_DIR, exist_ok=True)  # Ensure the directory exists
-    filepath = os.path.join(DATA_DIR, f"{question.Id}.json")
-    with open(filepath, "w") as file:
-        json.dump(question.__dict__, file)
+def save_local_questions(questions: Dict[int, Question]):
+    """Save all questions to a single local JSON file."""
+    with open(DATA_FILE, "w") as file:
+        # Serialize Question objects into their dictionaries
+        json.dump({qid: question.__dict__ for qid, question in questions.items()}, file)
 
 def GetAllQuestions() -> List[Question]:
-    """Fetch all Leetcode questions and store them locally as separate files."""
-    questions = []
+    """Fetch all Leetcode questions and store them locally in a single JSON file."""
+    questions = load_local_questions()  # Load existing questions from file
     total, _ = Query(1)  # Get the total number of questions
 
     # Start fetching and saving questions
     for i in range(1, total+1):
-        # Check if the question already exists locally
-        question = load_local_question(i)
-        if question is None:
+        if i not in questions:
             print(f"query {i}")
             # If the question isn't stored locally, fetch it from the API
             _, question = Query(i)
-            save_local_question(question)  # Save it to a separate file
-        questions.append(question)
-        time.sleep(0.4)  # Rate-limiting sleep
-    
-    return questions
+            questions[i] = question  # Add it to the dictionary
+            time.sleep(0.4)  # Rate-limiting sleep
+
+    save_local_questions(questions)  # Save all questions into one file
+    return list(questions.values())  # Return the list of Question objects
 
 if __name__ == "__main__":
     questions = GetAllQuestions()

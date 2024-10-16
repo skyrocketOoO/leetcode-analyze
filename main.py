@@ -20,47 +20,48 @@ with open(f"{recordPath}/report.json", 'w') as f:
 print("get all questions")
 questions = GetAllQuestions()
 
-print("transform topics")
-# transform topics
-targetLabels = []
+print("Remove non-algorithm data")
+algQuestions = []
 for question in questions:
     if question.Content is None or question.Category != "Algorithms":
         continue
+    algQuestions.append(question)
+
+print("transform topics")
+targetLabels = []
+for question in algQuestions:
     targetLabels.append(question.Topics)
 mlb = MultiLabelBinarizer()
 targetLabels = mlb.fit_transform(targetLabels)
 
-# class_counts = np.sum(targetLabels, axis=0)
+class_counts = np.sum(targetLabels, axis=0)
+# Get the class names
+class_names = mlb.classes_
+class_count_dict = {class_name: int(count) for class_name, count in zip(class_names, class_counts)}
 
-# # Get the class names
-# class_names = mlb.classes_
-
-# # Print class counts for each class
-# for class_name, count in zip(class_names, class_counts):
-#     print(f"{class_name}: {count}")
+# Write the dictionary to a JSON file
+with open(f"{recordPath}/class_counts.json", 'w') as json_file:
+    json.dump(class_count_dict, json_file, indent=4)
 
 print("transform features")
-# transform features
 features = []
-for question in questions:
+for question in algQuestions:
     if question.Content is None or question.Category != "Algorithms":
         continue
     features.append("Title: " + question.Title + "\n" + question.Content)
 vectorizer = TfidfVectorizer()
 features = vectorizer.fit_transform(features)
 
-print(len(targetLabels))
 print("training")
-# print(features is None, targetLabels is None, )
-Train(features, targetLabels, vectorizer.get_feature_names_out(), mlb.classes_, recordPath)
+Train(features, targetLabels, vectorizer.get_feature_names_out(), class_names, recordPath)
     
 executionTime = round(time.time()-startTime, 2)
 print(f"Execution time: {executionTime} seconds")
 
 with open(f"{recordPath}/report.json", 'r') as f:
     data = json.load(f)
-    data["total_questions"] = len(questions)
-    data["total algorithms"] = len(targetLabels)
+    data["total questions"] = len(questions)
+    data["total algorithms"] = len(algQuestions)
     data["execution time"] = executionTime
 with open(f"{recordPath}/report.json", 'w') as f:
     json.dump(data, f, indent=4)
