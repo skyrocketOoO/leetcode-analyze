@@ -39,9 +39,9 @@ def Train(features: List, targetLabels: List, feature_names: List[str], class_na
   with open(f"{recordPath}/classification_report.json", 'w') as f:
     json.dump(report_dict, f, indent=4)
 
-  plt.figure(figsize=(12,8))
-  tree.plot_tree(clf, filled=True, feature_names=feature_names, class_names=class_names)
-  plt.savefig(f"{recordPath}/decision_tree.png")
+  # plt.figure(figsize=(12,8))
+  # tree.plot_tree(clf, filled=True, feature_names=feature_names, class_names=class_names)
+  # plt.savefig(f"{recordPath}/decision_tree.png")
 
 if __name__ == "__main__":
   Train()
