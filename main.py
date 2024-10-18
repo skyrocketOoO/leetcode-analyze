@@ -10,6 +10,7 @@ import time
 import os, json
 
 OVER_SAMPLE = True
+KL_BOUNDARY = 0.1
 
 startTime = time.time()
 
@@ -32,6 +33,7 @@ for question in questions:
     targetLabels.append(question.Topics)
     features.append("Title: " + question.Title + "\n" + question.Content)
 
+totalAlgorithms = len(targetLabels)
 print("Transforming topics")
 mlb = MultiLabelBinarizer()
 targetLabels = mlb.fit_transform(targetLabels)
@@ -58,7 +60,7 @@ while OVER_SAMPLE:
     curDis = [v / totalC for v in class_count_dict.values()]
     kl_divergence = scipy.stats.entropy(curDis, uniDis)
     print(kl_divergence)
-    if kl_divergence < 0.1:
+    if kl_divergence < KL_BOUNDARY:
         break
     
     # Find the class with the minimum count
@@ -106,7 +108,8 @@ print(f"Execution time: {executionTime} seconds")
 with open(f"{recordPath}/report.json", 'r') as f:
     data = json.load(f)
     data["total questions"] = len(questions)
-    data["total algorithms"] = len(targetLabels)
+    data["total algorithms"] = totalAlgorithms
+    data["overSampling"] = len(targetLabels) - totalAlgorithms
     data["execution time"] = executionTime
 with open(f"{recordPath}/report.json", 'w') as f:
     json.dump(data, f, indent=4)
