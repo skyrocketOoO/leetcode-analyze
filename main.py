@@ -9,6 +9,8 @@ import numpy as np
 import time
 import os, json
 
+OVER_SAMPLE = True
+
 startTime = time.time()
 
 currentTime = datetime.now()
@@ -47,18 +49,25 @@ class_count_dict = {class_name: int(count) for class_name, count in zip(class_na
 class_to_index = {class_name: index for index, class_name in enumerate(class_names)}
 index_to_class = {index: class_name for index, class_name in enumerate(class_names)}
 
-while True:
+import scipy.stats
+nClass = len(class_count_dict.keys())
+uniDis = [1 / nClass for _ in range(nClass)]
+
+while OVER_SAMPLE:
+    totalC = sum(class_count_dict.values())
+    curDis = [v / totalC for v in class_count_dict.values()]
+    kl_divergence = scipy.stats.entropy(curDis, uniDis)
+    print(kl_divergence)
+    if kl_divergence < 0.1:
+        break
+    
     # Find the class with the minimum count
     minClassname, minCount = None, None
     for cls, c in class_count_dict.items():
         if minCount is None or minCount > c:
             minClassname = cls
             minCount = c
-
-    # Stop if the minimum class count is greater than 10
-    if minCount > 10:
-        break
-
+    
     # Find the data points belonging to the minority class
     indexed = []
     for i, labels in enumerate(targetLabels):
@@ -66,15 +75,22 @@ while True:
             indexed.append(i)
 
     # Perform oversampling by appending the minority class data points
+    # Find the less affect index
+    lessIndex, lessAffectClass = None, float('inf')
     for ind in indexed:
-        for i, v in enumerate(targetLabels[ind]):  # Enumerating over each one-hot encoded label array
-            if v == 1:  # If the value is 1 (indicating the class), increment its count
-                class_name = index_to_class[i]
-                class_count_dict[class_name] += 1
+        c = 0
+        for v in targetLabels[ind]:
+            c += v
+        if c < lessAffectClass:
+            lessIndex = ind
+    
+    for i, v in enumerate(targetLabels[lessIndex]):  # Enumerating over each one-hot encoded label array
+        class_name = index_to_class[i]
+        class_count_dict[class_name] += 1
 
-        # Append the features and target labels properly using sparse_vstack for sparse arrays
-        features = sparse_vstack([features, features[ind]])  # Use sparse_vstack for sparse matrices
-        targetLabels = np.vstack([targetLabels, targetLabels[ind]])  # Append target labels as rows
+    # Append the features and target labels properly using sparse_vstack for sparse arrays
+    features = sparse_vstack([features, features[lessIndex]])  # Use sparse_vstack for sparse matrices
+    targetLabels = np.vstack([targetLabels, targetLabels[lessIndex]])  # Append target labels as rows
 
 
 # Write the dictionary to a JSON file
