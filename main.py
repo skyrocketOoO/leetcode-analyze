@@ -21,16 +21,14 @@ print("get all questions")
 questions = GetAllQuestions()
 
 print("Remove non-algorithm data")
-algQuestions = []
+features, targetLabels = [], []
 for question in questions:
     if question.Content is None or question.Category != "Algorithms":
         continue
-    algQuestions.append(question)
-
-print("transform topics")
-targetLabels = []
-for question in algQuestions:
     targetLabels.append(question.Topics)
+    features.append("Title: " + question.Title + "\n" + question.Content)
+    
+print("transform topics")
 mlb = MultiLabelBinarizer()
 targetLabels = mlb.fit_transform(targetLabels)
 
@@ -44,11 +42,6 @@ with open(f"{recordPath}/class_counts.json", 'w') as json_file:
     json.dump(class_count_dict, json_file, indent=4)
 
 print("transform features")
-features = []
-for question in algQuestions:
-    if question.Content is None or question.Category != "Algorithms":
-        continue
-    features.append("Title: " + question.Title + "\n" + question.Content)
 vectorizer = TfidfVectorizer()
 features = vectorizer.fit_transform(features)
 
@@ -61,7 +54,7 @@ print(f"Execution time: {executionTime} seconds")
 with open(f"{recordPath}/report.json", 'r') as f:
     data = json.load(f)
     data["total questions"] = len(questions)
-    data["total algorithms"] = len(algQuestions)
+    data["total algorithms"] = len(targetLabels)
     data["execution time"] = executionTime
 with open(f"{recordPath}/report.json", 'w') as f:
     json.dump(data, f, indent=4)
