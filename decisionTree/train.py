@@ -8,10 +8,7 @@ import matplotlib.pyplot as plt
 import json
 
 
-def Train(features: List, targetLabels: List, feature_names: List[str], class_names: List[str], recordPath: str):
-  # Split the data into training and test sets
-  X_train, X_test, y_train, y_test = train_test_split(features, targetLabels, test_size=0.05, random_state=42)
-  
+def Train(X_train: List, y_train: List, X_test: List, y_test: List, feature_names: List[str], class_names: List[str], recordPath: str):
   # Initialize and train the Decision Tree Classifier on the resampled data
   clf = DecisionTreeClassifier(random_state=42)
   clf.fit(X_train, y_train)

@@ -4,6 +4,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from utils.cleanHtmlContent import CleanHtmlContent
 from scipy.sparse import vstack as sparse_vstack
+from sklearn.model_selection import train_test_split
 from datetime import datetime
 import numpy as np
 import time
@@ -55,11 +56,18 @@ import scipy.stats
 nClass = len(class_count_dict.keys())
 uniDis = [1 / nClass for _ in range(nClass)]
 
+# Write the dictionary to a JSON file
+with open(f"{recordPath}/class_counts.json", 'w') as json_file:
+    json.dump(class_count_dict, json_file, indent=4)
+
+
+X_train, X_test, y_train, y_test = train_test_split(features, targetLabels, test_size=0.05, random_state=42)
+
 while OVER_SAMPLE:
     totalC = sum(class_count_dict.values())
     curDis = [v / totalC for v in class_count_dict.values()]
     kl_divergence = scipy.stats.entropy(curDis, uniDis)
-    print(kl_divergence)
+    # print(kl_divergence)
     if kl_divergence < KL_BOUNDARY:
         break
     
@@ -72,7 +80,7 @@ while OVER_SAMPLE:
     
     # Find the data points belonging to the minority class
     indexed = []
-    for i, labels in enumerate(targetLabels):
+    for i, labels in enumerate(y_train):
         if labels[class_to_index[minClassname]] == 1:  # Check for one-hot encoding match
             indexed.append(i)
 
@@ -81,26 +89,22 @@ while OVER_SAMPLE:
     lessIndex, lessAffectClass = None, float('inf')
     for ind in indexed:
         c = 0
-        for v in targetLabels[ind]:
+        for v in y_train[ind]:
             c += v
         if c < lessAffectClass:
             lessIndex = ind
     
-    for i, v in enumerate(targetLabels[lessIndex]):  # Enumerating over each one-hot encoded label array
+    for i, v in enumerate(y_train[lessIndex]):  # Enumerating over each one-hot encoded label array
         class_name = index_to_class[i]
         class_count_dict[class_name] += 1
 
     # Append the features and target labels properly using sparse_vstack for sparse arrays
-    features = sparse_vstack([features, features[lessIndex]])  # Use sparse_vstack for sparse matrices
-    targetLabels = np.vstack([targetLabels, targetLabels[lessIndex]])  # Append target labels as rows
+    X_train = sparse_vstack([X_train, X_train[lessIndex]])  # Use sparse_vstack for sparse matrices
+    y_train = np.vstack([y_train, y_train[lessIndex]])  # Append target labels as rows
 
-
-# Write the dictionary to a JSON file
-with open(f"{recordPath}/class_counts.json", 'w') as json_file:
-    json.dump(class_count_dict, json_file, indent=4)
 
 print("training")
-Train(features, targetLabels, vectorizer.get_feature_names_out(), class_names, recordPath)
+Train(X_train, y_train, X_test, y_test, vectorizer.get_feature_names_out(), class_names, recordPath)
     
 executionTime = round(time.time()-startTime, 2)
 print(f"Execution time: {executionTime} seconds")
